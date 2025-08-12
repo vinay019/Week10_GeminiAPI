@@ -1,24 +1,29 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+const responsesDiv = document.getElementById("responses");
+document.querySelector("form").addEventListener("submit", sendChatRequest);
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+async function sendChatRequest(event) {
+  event.preventDefault();
 
-setupCounter(document.querySelector('#counter'))
+  const userPrompt = event.target.prompt.value.trim(); // make sure your input has name="prompt"
+  console.log(userPrompt);
+
+  if (!userPrompt) return; // optional guard
+
+  try {
+    const response = await fetch("http://localhost:8080/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: userPrompt }), // server expects "prompt"
+    });
+
+    const data = await response.json();
+    console.log("server data:", data);
+
+    const reply = data.reply ?? data; // handle { reply: "..."} or "..."
+    const responseP = document.createElement("p");
+    responseP.textContent = reply;
+    responsesDiv.appendChild(responseP);
+  } catch (err) {
+    console.error("fetch error:", err);
+  }
+}
